@@ -1,0 +1,1 @@
+export { TradingviewWidget } from './TradingviewWidget';
