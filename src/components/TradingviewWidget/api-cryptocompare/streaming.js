@@ -94,7 +94,7 @@ export function subscribeOnStream(
         handlers: [handler],
     };
     channelToSubscription.set(channelString, subscriptionItem);
-    console.log('[subscribeBars]: Subscribe to streaming. Channel:', channelString );
+    // console.log('[subscribeBars]: Subscribe to streaming. Channel:', channelString );
     const subRequest = {
         action: 'SubAdd',
         subs: [channelString],
@@ -116,7 +116,7 @@ export function unsubscribeFromStream(subscriberUID) {
 
             if (subscriptionItem.handlers.length === 0) {
                 // Unsubscribe from the channel if it was the last handler
-                console.log('[unsubscribeBars]: Unsubscribe from streaming. Channel:', channelString);
+                // console.log('[unsubscribeBars]: Unsubscribe from streaming. Channel:', channelString);
                 const subRequest = {
                     action: 'SubRemove',
                     subs: [channelString],
