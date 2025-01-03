@@ -1,15 +1,48 @@
-import { useEffect, useRef } from 'react';
-// import { widget  } from '../../charting_library';
-import { widget } from '../../../public/charting_library';
+import { useState, useEffect, useRef } from 'react';
+import { widget } from '/public/charting_library';
 import datafeed from './api-cryptocompare/datafeed';
 
 export const TradingviewWidget = () => {
     const chartContainerRef = useRef();
+    const [intervalo, setIntervalo] = useState(null);
+    const [symbol, setSymbol] = useState(null);
 
     useEffect(() => {
         let currentUrl = window.location.href;
         let url = new URL(currentUrl);
-        const symbol = url.searchParams.get('symbol') === undefined ? "BTC" : url.searchParams.get('symbol');
+        const symbolFromUrl = url.searchParams.get('symbol');
+        const intervalFromUrl = url.searchParams.get('interval') || "1D";
+    
+        if (symbolFromUrl) {
+          setSymbol(symbolFromUrl);
+          localStorage.setItem('tradingview-symbol', symbolFromUrl);
+        } else {
+          const savedSymbol = localStorage.getItem('tradingview-symbol');
+          if (savedSymbol) {
+            setSymbol(savedSymbol);
+          }
+        }
+    
+        if (intervalFromUrl) {
+          setIntervalo(intervalFromUrl);
+          localStorage.setItem('tradingview-interval', intervalFromUrl);
+        } else {
+          const savedInterval = localStorage.getItem('tradingview.chart.lastUsedTimeBasedResolution') || "1D";
+          if (savedInterval) {
+            setIntervalo(savedInterval);
+          }
+        }
+      }, []);
+
+    useEffect(() => {
+        if (!symbol || !intervalo) return;
+
+    // Actualizar la URL para reflejar el símbolo y el intervalo
+        const url = new URL(window.location.href);
+        url.searchParams.set('symbol', symbol); // Actualiza el parámetro 'symbol'
+        url.searchParams.set('interval', intervalo); // Actualiza el parámetro 'interval'
+        window.history.replaceState({}, '', url.toString());
+
 
         const storageKeys = {
             charts: "LocalStorageSaveLoadAdapter_charts",
@@ -384,7 +417,7 @@ export const TradingviewWidget = () => {
             symbol: `Binance:${symbol}/USDT`,
             datafeed,
             locale: 'es',
-            interval: '1',
+            interval: intervalo,
             container: chartContainerRef.current,
             library_path: '/charting_library/',
             charts_storage_url: 'https://saveload.tradingview.com',
@@ -401,6 +434,13 @@ export const TradingviewWidget = () => {
         };
 
         const widgets = new widget(widgetOptions);
+
+        widgets.onChartReady(() => {
+            widgets.activeChart().onIntervalChanged().subscribe(null, (interval, timeframeObj) => {
+                setIntervalo(interval);
+                localStorage.setItem('tradingview-interval', interval);
+            });
+        });
 
         widgets.headerReady().then(() => {
             const customButton = widgets.createButton({
@@ -454,8 +494,15 @@ export const TradingviewWidget = () => {
                 }
             });
         });
+    
 
-    }, []);
+        return () => {
+            if (widgets) {
+                widgets.remove();
+            }
+        };
+
+    }, [intervalo ]);
 
     return <div ref={chartContainerRef} style={{ height: '100vh', width: '100%' }} />;
 };

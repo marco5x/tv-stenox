@@ -1,5 +1,5 @@
 import './App.css'
-import { TradingviewWidget } from './components/index';
+import { TradingviewWidget } from './components/TradingviewWidget/TradingviewWidget';
 
 function App() {
     return (
