@@ -11,7 +11,7 @@ export const TradingviewWidget = () => {
         let currentUrl = window.location.href;
         let url = new URL(currentUrl);
         const symbolFromUrl = url.searchParams.get('symbol');
-        const intervalFromUrl = url.searchParams.get('interval') || "1D";
+        const intervalFromUrl = url.searchParams.get('interval') || localStorage.getItem('tradingview.chart.lastUsedTimeBasedResolution') || "1D";
     
         if (symbolFromUrl) {
           setSymbol(symbolFromUrl);
