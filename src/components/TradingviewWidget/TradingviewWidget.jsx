@@ -14,23 +14,24 @@ export const TradingviewWidget = () => {
         const intervalFromUrl = url.searchParams.get('interval') || localStorage.getItem('tradingview.chart.lastUsedTimeBasedResolution') || "1D";
     
         if (symbolFromUrl) {
-          setSymbol(symbolFromUrl);
-          localStorage.setItem('tradingview-symbol', symbolFromUrl);
+            setSymbol(symbolFromUrl);
+            localStorage.setItem('tradingview-symbol', symbolFromUrl);
+
         } else {
-          const savedSymbol = localStorage.getItem('tradingview-symbol');
-          if (savedSymbol) {
-            setSymbol(savedSymbol);
-          }
+            const savedSymbol = localStorage.getItem('tradingview-symbol');
+            if (savedSymbol) {
+                setSymbol(savedSymbol);
+            }
         }
     
         if (intervalFromUrl) {
-          setIntervalo(intervalFromUrl);
-          localStorage.setItem('tradingview-interval', intervalFromUrl);
+            setIntervalo(intervalFromUrl);
+            localStorage.setItem('tradingview-interval', intervalFromUrl);
         } else {
-          const savedInterval = localStorage.getItem('tradingview.chart.lastUsedTimeBasedResolution') || "1D";
-          if (savedInterval) {
-            setIntervalo(savedInterval);
-          }
+            const savedInterval = localStorage.getItem('tradingview.chart.lastUsedTimeBasedResolution') || "1D";
+            if (savedInterval) {
+                setIntervalo(savedInterval);
+            }
         }
       }, []);
 
@@ -42,7 +43,6 @@ export const TradingviewWidget = () => {
         url.searchParams.set('symbol', symbol); // Actualiza el parámetro 'symbol'
         url.searchParams.set('interval', intervalo); // Actualiza el parámetro 'interval'
         window.history.replaceState({}, '', url.toString());
-
 
         const storageKeys = {
             charts: "LocalStorageSaveLoadAdapter_charts",
@@ -436,9 +436,25 @@ export const TradingviewWidget = () => {
         const widgets = new widget(widgetOptions);
 
         widgets.onChartReady(() => {
+            const chart = widgets.activeChart();
+
+            // Restaurar indicadores guardados
+            const savedIndicators = JSON.parse(localStorage.getItem('tradingview-indicators')) || [];
+            savedIndicators.forEach(indicator => {
+                chart.createStudy(indicator.name, false, false, indicator.inputs, indicator.options);
+            });
+
             widgets.activeChart().onIntervalChanged().subscribe(null, (interval, timeframeObj) => {
                 setIntervalo(interval);
                 localStorage.setItem('tradingview-interval', interval);
+
+                const studies = chart.getAllStudies();
+                const indicators = studies.map(study => ({
+                    name: study.name,
+                    inputs: study.inputs,
+                    options: study.options
+                }));
+                localStorage.setItem('tradingview-indicators', JSON.stringify(indicators));
             });
         });
 
